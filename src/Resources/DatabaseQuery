@@ -18,7 +18,7 @@ USE db_AutoCamperDatabase;
 -- Creation of tables
 CREATE TABLE tbl_Zip
 (
-  fld_Zip  VARCHAR(4) PRIMARY KEY,
+  fld_Zip  VARCHAR(5) PRIMARY KEY,
   fld_City VARCHAR(50)
 );
 
@@ -28,7 +28,7 @@ CREATE TABLE tbl_Customer
   fld_CustomerName VARCHAR(50) NOT NULL,
   fld_PhoneNR      VARCHAR(12) NOT NULL,
   fld_EMail        VARCHAR(50),
-  fld_Zip          VARCHAR(4)  NOT NULL,
+  fld_Zip          VARCHAR(5)  NOT NULL,
   FOREIGN KEY (fld_Zip) REFERENCES tbl_Zip (fld_Zip),
   fld_Adress       VARCHAR(50) NOT NULL,
 );
@@ -199,7 +199,7 @@ CREATE TABLE tbl_BillReservationBridge
 
 -- Insert/Update Zip
 GO
-CREATE PROCEDURE sp_AddZip(@newZip VARCHAR(4),
+CREATE PROCEDURE sp_AddZip(@newZip VARCHAR(5),
                            @newCity VARCHAR(50))
 AS
 BEGIN
@@ -228,7 +228,7 @@ CREATE PROCEDURE sp_AddCustomer(@customerID INT,
                                 @newCustomerName VARCHAR(50),
                                 @newPhoneNR VARCHAR(12),
                                 @newEMail VARCHAR(50),
-                                @newZip VARCHAR(4),
+                                @newZip VARCHAR(5),
                                 @newAdress VARCHAR(50))
 AS
 BEGIN
@@ -775,15 +775,28 @@ AS
 
 -- Find discount by ID
 GO
-CREATE PROCEDURE tbl_GetDiscountByID(@ID INT)
+CREATE PROCEDURE sp_GetDiscountByID(@ID INT)
 AS
   SELECT * FROM tbl_Discount WHERE fld_DiscountID = @ID
 
 -- Find Payment by ID
+GO
+CREATE PROCEDURE sp_GetPaymentByID(@ID INT)
+AS
+  SELECT * FROM tbl_Payment WHERE fld_PaymentID = @ID
 
 -- Find BillStatus by ID
+GO
+CREATE PROCEDURE sp_GetBillStatusByID(@ID INT)
+AS
+  SELECT * FROM tbl_BillStatus WHERE fld_BillStatus = @ID
 
 -- Find AutoCamper by Status
+GO
+CREATE PROCEDURE sp_GetAutoCampersByStatusID(@statusID INT)
+AS
+  SELECT FROM tbl_AutoCamper WHERE fld_AutoCamperID =
+                                   ()
 
 -- Find Status by Autocamper
 
