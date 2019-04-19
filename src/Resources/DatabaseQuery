@@ -791,12 +791,6 @@ CREATE PROCEDURE sp_GetBillStatusByID(@ID INT)
 AS
   SELECT * FROM tbl_BillStatus WHERE fld_BillStatus = @ID
 
--- Find AutoCamper by Status
-GO
-CREATE PROCEDURE sp_GetAutoCampersByStatusID(@statusID INT)
-AS
-  SELECT FROM tbl_AutoCamper WHERE fld_AutoCamperID =
-                                   ()
 
 -- Find Status by Autocamper
 
@@ -835,6 +829,7 @@ EXEC sp_AddZip '6400', 'Sønderborg WRONG'
 EXEC sp_AddZip '6400', 'Sønderborg' -- Should Update
 EXEC sp_AddZip '6430', 'Nordborg'
 EXEC sp_AddZip '6440', 'Augustenborg'
+--EXEC sp_AddZip '10100', 'Flensburg'
 
 -- Test for sp_DeleteZip
 EXEC sp_AddZip '9999', 'Should be deleted'
@@ -880,9 +875,10 @@ EXEC sp_InsertAutoCamperType 'SHOULD BE DELETED', 1000, 1000
 EXEC sp_DeleteAutoCamperType 4
 
 --Test for sp_AddAutoCamper
-EXEC sp_AddAutoCamper '123456', 'Basic', 3, 370, 420, 3500, 2, 4, 2415, 'Motor stuff', 6, 'Diesel', 'TEXT OF KITCHEN',
-     'TEXT OF HEATING', 'TEXT OF MEDIA', 'TEXT ABOUT GENERAL STUFF'
-
+--EXEC sp_AddAutoCamper null, '123456',5, 3, 370, 420, 3500, 2, 4, 2415, 'Motor stuff', 6, 'Diesel', 'TEXT OF KITCHEN',
+     --'TEXT OF HEATING', 'TEXT OF MEDIA', 'TEXT ABOUT GENERAL STUFF'
+--EXEC sp_AddAutoCamper null, '234567FE', 4, 3, 370, 420, 3500, 2, 4, 2415, 'Motor stuff', 6, 'Diesel', 'TEXT OF KITCHEN',
+     --'TEXT OF HEATING', 'TEXT OF MEDIA', 'TEXT ABOUT GENERAL STUFF'
 --Test for sp_DeleteAutoCamper
 
 -- Test for Removal of singe relation
@@ -893,12 +889,18 @@ EXEC sp_AddAutoCamper '123456', 'Basic', 3, 370, 420, 3500, 2, 4, 2415, 'Motor s
 EXEC sp_InsertStatusToAutoCamperRelation 'Ready', 1
 
 -- Test for sp_InsertSeason
+EXEC sp_InsertSeason 1,6,7,12
+EXEC sp_InsertSeason 4,7,8,19 --Should be deleted
 
 -- Test for sp_DeleteSeason
+EXEC sp_DeleteSeason 2
 
 -- Test for sp_AddReservation
+--EXEC sp_AddReservation 12, '2008-11-11', '2008-12-12', 8, 9, 10, 11
+--EXEC sp_AddReservation 11, '2009-01-12', '2099-12-01', 4, 5, 6, 788 --Should be deleted
 
 -- Test for sp_DeleteReservation
+EXEC sp_DeleteReservation 2
 
 -- Test for sp_DeleteCustomerToReservationRelation
 
@@ -909,10 +911,15 @@ EXEC sp_InsertStatusToAutoCamperRelation 'Ready', 1
 -- Test for sp_InsertCustomerReservationRelation
 
 -- Test for sp_InsertBillStatus
+EXEC sp_InsertBillStatus 'PAID'
+EXEC sp_InsertBillStatus 'UNPAID' --Should be updated
+EXEC sp_InsertBillStatus 'REFUNDED' --Should be deleted
 
 -- Test for sp_UpdateBillStatus
+EXEC sp_UpdateBillStatus 'UNPAID', 'STILLUNPAID'
 
 -- Test for sp_DeleteBillStatus
+EXEC sp_DeleteBillStatus 'REFUNDED'
 
 -- Test for sp_InsertDiscount
 
