@@ -1,0 +1,948 @@
+USE MASTER
+GO
+-- Delete existing Database if its there
+IF EXISTS(SELECT *
+          FROM sys.databases
+          WHERE name = 'db_AutoCamperDatabase')
+  BEGIN
+    ALTER DATABASE db_AutoCamperDatabase
+      SET SINGLE_USER
+      WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE db_AutoCamperDatabase;
+  END
+
+CREATE DATABASE db_AutoCamperDatabase
+GO
+USE db_AutoCamperDatabase;
+
+-- Creation of tables
+CREATE TABLE tbl_Zip
+(
+  fld_Zip  VARCHAR(4) PRIMARY KEY,
+  fld_City VARCHAR(50)
+);
+
+CREATE TABLE tbl_Customer
+(
+  fld_CustomerID   INT IDENTITY (1,1) PRIMARY KEY,
+  fld_CustomerName VARCHAR(50) NOT NULL,
+  fld_PhoneNR      VARCHAR(12) NOT NULL,
+  fld_EMail        VARCHAR(50),
+  fld_Zip          VARCHAR(4)  NOT NULL,
+  FOREIGN KEY (fld_Zip) REFERENCES tbl_Zip (fld_Zip),
+  fld_Adress       VARCHAR(50) NOT NULL,
+);
+
+CREATE TABLE tbl_AutoCamperStatus
+(
+  fld_AutoCamperStatus VARCHAR(30) PRIMARY KEY
+);
+
+CREATE TABLE tbl_AutoCamperType
+(
+  fld_AutoCamperTypeID     INT IDENTITY (1,1) PRIMARY KEY,
+  fld_CategoryName         VARCHAR(30)    NOT NULL,
+  fld_Date                 DATETIME       NOT NULL,
+  fld_WeeklyPriceInSeason  NUMERIC(18, 2) NOT NULL,
+  fld_WeeklyPriceOffSeason NUMERIC(18, 2) NOT NULL
+);
+
+-- Ill guess we need to protect the removal of the last status of a given autoCamper by stored procedure?
+CREATE TABLE tbl_AutoCamper
+(
+  fld_AutoCamperID       INT IDENTITY (1,1) PRIMARY KEY,
+  fld_NumberPlate        VARCHAR(20) NOT NULL,
+  fld_AutoCamperType     INT         NOT NULL,
+  FOREIGN KEY (fld_AutoCamperType) REFERENCES tbl_AutoCamperType (fld_AutoCamperTypeID),
+  fld_HeightInCm         INT,
+  fld_LengthInCm         INT,
+  fld_WeightInKG         INT,
+  fld_NoOfBeds           INT,
+  fld_NoOfSeats          INT,
+  fld_MilageInKm         INT,
+  fld_Engine             VARCHAR(50),
+  fld_Gears              INT,
+  fld_TypeOfGas          VARCHAR(30),
+  fld_KitchenDescription NVARCHAR(MAX),
+  fld_HeatingDescription NVARCHAR(MAX),
+  fld_MediaDescription   NVARCHAR(MAX),
+  fld_GeneralDescription NVARCHAR(MAX)
+);
+
+-- The cascading of Delete needs a test
+CREATE TABLE tbl_AutoCamperStatusAutoCamperBridge
+(
+  fld_AutoCamperStatus VARCHAR(30),
+  FOREIGN KEY (fld_AutoCamperStatus) REFERENCES tbl_AutoCamperStatus (fld_AutoCamperStatus) ON DELETE CASCADE,
+  fld_AutoCamperID     INT,
+  FOREIGN KEY (fld_AutoCamperID) REFERENCES tbl_AutoCamper (fld_AutoCamperID) ON DELETE CASCADE
+);
+
+-- Year must be stripped out for the sake of stored procedures
+CREATE TABLE tbl_Season
+(
+  fld_SeasonID       INT IDENTITY (1,1) PRIMARY KEY,
+  fld_WeekOffSeasonStart INT     NOT NULL,
+  fld_WeekOffSeasonEnd   INT     NOT NULL,
+  fld_WeekInSeasonStart  INT     NOT NULL,
+  fld_WeekInSeasonEnd    INT     NOT NULL,
+  fld_Date           DATETIME NOT NULL
+);
+
+-- Protect again last removal of customer
+CREATE TABLE tbl_Reservation
+(
+  fld_ReservationID    INT IDENTITY (1,1) PRIMARY KEY,
+  fld_StartDate        DATE NOT NULL,
+  fld_EndDate          DATE NOT NULL,
+  fld_MilageAtDepature INT  NOT NULL,
+  fld_MilageAtArrival  INT,
+  fld_AutoCamper       INT  NOT NULL,
+  FOREIGN KEY (fld_AutoCamper) REFERENCES tbl_AutoCamper (fld_AutoCamperID),
+  fld_Season           INT  NOT NULL,
+  FOREIGN KEY (fld_Season) REFERENCES tbl_Season (fld_SeasonID)
+);
+
+CREATE TABLE tbl_CustomerReservationBridge
+(
+  fld_CustomerID    INT NOT NULL,
+  FOREIGN KEY (fld_CustomerID) REFERENCES tbl_cUSTOMER (fld_CustomerID) ON DELETE CASCADE,
+  fld_ReservationID INT NULL,
+  FOREIGN KEY (fld_ReservationID) REFERENCES tbl_Reservation (fld_ReservationID) ON DELETE CASCADE
+);
+
+CREATE TABLE tbl_BillStatus
+(
+  fld_BillStatus VARCHAR(50) PRIMARY KEY
+);
+
+CREATE TABLE tbl_Discount
+(
+  fld_DiscountID         INT IDENTITY (1,1) PRIMARY KEY,
+  fld_NoOfRentals        INT           NOT NULL,
+  fld_DiscountPercentage NUMERIC(8, 5) NOT NULL,
+  fld_Date               DATETIME      NOT NULL
+);
+
+CREATE TABLE tbl_Insurance
+(
+  fld_InsuranceID   INT IDENTITY (1,1) PRIMARY KEY,
+  fld_InsuranceName VARCHAR(30)    NOT NULL,
+  fld_BasePrice     NUMERIC(18, 2) NOT NULL,
+  fld_PricePerWeek  NUMERIC(18, 2) NOT NULL,
+  fld_Description   NVARCHAR(MAX)  NOT NULL,
+  fld_Date          DATETIME       NOT NULL
+);
+
+CREATE TABLE tbl_Fee
+(
+  fld_FeeID  INT IDENTITY (1,1) PRIMARY KEY,
+  fld_Name   VARCHAR(30)    NOT NULL,
+  fld_Amount NUMERIC(18, 2) NOT NULL,
+  fld_Date   DATETIME       NOT NULL
+);
+
+CREATE TABLE tbl_Bill
+(
+  fld_BillID     INT IDENTITY (1,1) PRIMARY KEY,
+  fld_DueDate    DATE        NOT NULL,
+  fld_DiscountID INT,
+  FOREIGN KEY (fld_DiscountID) REFERENCES tbl_Discount (fld_DiscountID),
+  fld_BillStatus VARCHAR(50) NOT NULL,
+  FOREIGN KEY (fld_BillStatus) REFERENCES tbl_BillStatus (fld_BillSTatus)
+);
+
+CREATE TABLE tbl_BillInsuranceBridge
+(
+  fld_BillID      INT NOT NULL,
+  FOREIGN KEY (fld_BillID) REFERENCES tbl_Bill (fld_BillID) ON DELETE CASCADE,
+  fld_InsuranceID INT NOT NULL,
+  FOREIGN KEY (fld_InsuranceID) REFERENCES tbl_Insurance (fld_InsuranceID) ON DELETE CASCADE
+);
+
+CREATE TABLE tbl_BillFeeBridge
+(
+  fld_BillID INT NOT NULL,
+  FOREIGN KEY (fld_BillID) REFERENCES tbl_Bill (fld_BillID) ON DELETE CASCADE,
+  fld_FeeID  INT NOT NULL,
+  FOREIGN KEY (fld_FeeID) REFERENCES tbl_Fee (fld_FeeId) ON DELETE CASCADE
+);
+-- oops forgot bill
+CREATE TABLE tbl_Payment
+(
+  fld_PaymentID INT IDENTITY (1,1) PRIMARY KEY,
+  fld_Date      DATE           NOT NULL,
+  fld_Amount    NUMERIC(18, 2) NOT NULL,
+  fld_BillID    INT            NOT NULL,
+  FOREIGN KEY (fld_BillID) REFERENCES tbl_Bill (fld_BillID)
+);
+
+CREATE TABLE tbl_CustomFee
+(
+  fld_CustomFeeID INT IDENTITY (1,1) PRIMARY KEY,
+  fld_Amount      NUMERIC(18, 2) NOT NULL,
+  fld_Name        VARCHAR(30)    NOT NULL,
+  fld_Comment     NVARCHAR(MAX)  NOT NULL,
+  fld_BillID      INT            NOT NULL,
+  FOREIGN KEY (fld_BillID) REFERENCES tbl_Bill (fld_BillID)
+);
+
+CREATE TABLE tbl_BillReservationBridge
+(
+  fld_BillID        INT NOT NULL,
+  FOREIGN KEY (fld_BillID) REFERENCES tbl_Bill (fld_BillID) ON DELETE CASCADE,
+  fld_ReservationID INT NOT NULL,
+  FOREIGN KEY (fld_ReservationID) REFERENCES tbl_Reservation (fld_ReservationID) ON DELETE CASCADE
+);
+
+-- Stored procedures and UDF
+
+-- Insert/Update Zip
+GO
+CREATE PROCEDURE sp_AddZip(@newZip VARCHAR(4),
+                           @newCity VARCHAR(50))
+AS
+BEGIN
+  IF EXISTS(SELECT * FROM tbl_Zip WHERE fld_Zip = @newZip)
+    BEGIN
+      UPDATE tbl_Zip SET fld_City = @newCity WHERE fld_Zip = @newZip
+    END
+  ELSE
+    BEGIN
+      INSERT INTO tbl_Zip VALUES (@newZip, @newCity)
+    END
+END
+
+-- Deletion of Zip
+GO
+CREATE PROCEDURE sp_DeleteZip(
+  @ID VARCHAR(4))
+AS
+DELETE
+FROM tbl_Zip
+WHERE fld_Zip = @ID
+
+-- Insert/Update Customer
+GO
+CREATE PROCEDURE sp_AddCustomer(@customerID INT,
+                                @newCustomerName VARCHAR(50),
+                                @newPhoneNR VARCHAR(12),
+                                @newEMail VARCHAR(50),
+                                @newZip VARCHAR(4),
+                                @newAdress VARCHAR(50))
+AS
+BEGIN
+  IF EXISTS(SELECT * FROM tbl_Customer WHERE fld_CustomerID = @customerID)
+    BEGIN
+      UPDATE tbl_Customer
+      SET fld_CustomerName = @newCustomerName,
+          fld_PhoneNR      = @newPhoneNR,
+          fld_EMail        = @newEMail,
+          fld_Zip          = @newZip,
+          fld_Adress       = @newAdress
+      WHERE fld_CustomerID = @customerID
+    END
+  ELSE
+    BEGIN
+      INSERT INTO tbl_Customer VALUES (@newCustomerName, @newPhoneNR, @newEMail, @newZip, @newAdress)
+    END
+END
+
+-- Delete Customer
+GO
+CREATE PROCEDURE sp_DeleteCustomer(
+  @ID INT)
+AS
+DELETE
+FROM tbl_Customer
+WHERE fld_CustomerID = @ID
+
+-- Insert AutoCamperStatus
+GO
+CREATE PROCEDURE sp_InsertAutoCamperStatus(
+  @newStatus VARCHAR(30))
+AS
+INSERT INTO tbl_AutoCamperStatus
+VALUES (@newStatus)
+
+-- Update AutoCamperStatus
+GO
+CREATE PROCEDURE sp_UpdateAutoCamperStatus(@oldStatus VARCHAR(30),
+                                           @newStatus VARCHAR(30))
+AS
+UPDATE tbl_AutoCamperStatus
+SET fld_AutoCamperStatus = @newStatus
+WHERE fld_AutoCamperStatus = @oldStatus
+
+-- Delete AutoCamperStatus
+GO
+CREATE PROCEDURE sp_DeleteAutoCamperStatus(
+  @ID VARCHAR(30))
+AS
+DELETE
+FROM tbl_AutoCamperStatus
+WHERE fld_AutoCamperStatus = @ID
+
+-- Insert AutoCamperType
+GO
+CREATE PROCEDURE sp_InsertAutoCamperType(@newCategoryName VARCHAR(30),
+                                         @newWeeklyPriceInSeason NUMERIC(18, 2),
+                                         @newWeeklyPriceOffSeason NUMERIC(18, 2))
+AS
+INSERT INTO tbl_AutoCamperType
+VALUES (@newCategoryName, SYSDATETIME(), @newWeeklyPriceInSeason, @newWeeklyPriceOffSeason)
+
+
+-- Delete AutoCamperType
+GO
+CREATE PROCEDURE sp_DeleteAutoCamperType(@categoryName VARCHAR(50))
+AS
+DELETE
+FROM tbl_AutoCamperType
+WHERE fld_CategoryName = @categoryName
+
+-- Insert/Update AutoCamper WHAT ABOUT THE BRIDGE??????????????
+GO
+CREATE PROCEDURE sp_AddAutoCamper(@ID INT,
+                                  @newNumberPlate VARCHAR(20),
+                                  @newAutoCamperType INT,
+                                  @newHeightInCm INT,
+                                  @newLengthInCm INT,
+                                  @newWeightInKG INT,
+                                  @newNoOfBeds INT,
+                                  @newNoOfSeats INT,
+                                  @newMileageInKm INT,
+                                  @newEngine VARCHAR(50),
+                                  @newGears INT,
+                                  @newTypeOfGas VARCHAR(30),
+                                  @newKitchenDescription NVARCHAR(MAX),
+                                  @newHeatingDescription NVARCHAR(MAX),
+                                  @newMediaDescription NVARCHAR(MAX),
+                                  @newGeneralDescription NVARCHAR(MAX))
+AS
+BEGIN
+  IF EXISTS(SELECT * FROM tbl_AutoCamper WHERE fld_AutoCamperID = @ID)
+    BEGIN
+      UPDATE tbl_AutoCamper
+      SET fld_NumberPlate        = @newNumberPlate,
+          fld_AutoCamperType     = @newAutoCamperType,
+          fld_HeightInCm         = @newHeightInCm,
+          fld_LengthInCm         = @newLengthInCm,
+          fld_WeightInKG         = @newWeightInKG,
+          fld_NoOfBeds           = @newNoOfBeds,
+          fld_NoOfSeats          = @newNoOfSeats,
+          fld_MilageInKm         = @newMileageInKm,
+          fld_Engine             = @newEngine,
+          fld_Gears              = @newGears,
+          fld_TypeOfGas          = @newTypeOfGas,
+          fld_KitchenDescription = @newKitchenDescription,
+          fld_HeatingDescription = @newHeatingDescription,
+          fld_MediaDescription   = @newMediaDescription,
+          fld_GeneralDescription = @newGeneralDescription
+      WHERE fld_AutoCamperID = @ID
+    END
+  ELSE
+    BEGIN
+      INSERT INTO tbl_AutoCamper
+      VALUES (@newNumberPlate,
+              @newAutoCamperType,
+              @newHeightInCm,
+              @newLengthInCm,
+              @newWeightInKG,
+              @newNoOfBeds,
+              @newNoOfSeats,
+              @newMileageInKm,
+              @newEngine,
+              @newGears,
+              @newTypeOfGas,
+              @newKitchenDescription,
+              @newHeatingDescription,
+              @newMediaDescription,
+              @newGeneralDescription)
+    END
+END
+
+-- Delete AutoCamper
+GO
+CREATE PROCEDURE sp_DelteAutoCamper(
+  @ID INT)
+AS
+DELETE
+FROM tbl_AutoCamper
+WHERE fld_AutoCamperID = @ID
+
+-- Delete status to AutoCamper relation
+GO
+CREATE PROCEDURE sp_DeleteStatusToAutoCamperRelation(@AutoCamperStatus VARCHAR(30),
+                                                     @AutoCamperID INT)
+AS
+DELETE
+FROM tbl_AutoCamperStatusAutoCamperBridge
+WHERE fld_AutoCamperID = @AutoCamperID
+  AND fld_AutoCamperStatus = @AutoCamperStatus
+
+-- Removal of related AutoCamper to Status Bridge given an AutoCamper
+GO
+CREATE PROCEDURE sp_RemoveStatusesFromAutoCamper(@AutoCamperID INT)
+AS
+DELETE
+FROM tbl_AutoCamperStatusAutoCamperBridge
+WHERE fld_AutoCamperID = @AutoCamperID
+
+-- Removal of related AutoCamper to status Bridge given An status
+GO
+CREATE PROCEDURE sp_RemoveAutoCampersFromStatus(@Status INT)
+AS
+  DELETE FROM tbl_AutoCamperStatusAutoCamperBridge WHERE  fld_AutoCamperStatus = @Status
+
+-- Create new AutoCamper to Status relation
+GO
+CREATE PROCEDURE sp_InsertStatusToAutoCamperRelation(@AutoCamperStatus VARCHAR(30),
+                                                     @AutoCamperID INT)
+AS
+INSERT INTO tbl_AutoCamperStatusAutoCamperBridge
+VALUES (@AutoCamperStatus, @AutoCamperID)
+
+-- Insert Season
+GO
+CREATE PROCEDURE sp_InsertSeason(@newOffSeasonStart INT,
+                                 @newOffSeasonEnd INT,
+                                 @newInSeasonStart INT,
+                                 @newInSeasonEnd INT)
+AS
+INSERT INTO tbl_Season
+VALUES (@newOffSeasonStart, @newOffSeasonEnd, @newInSeasonStart, @newInSeasonEnd, SYSDATETIME())
+
+-- Delete Season
+GO
+CREATE PROCEDURE sp_DeleteSeason(@ID INT)
+AS
+DELETE
+FROM tbl_Season
+WHERE fld_SeasonID = @ID
+
+-- Delete Customer to Reservation Relation
+GO
+CREATE PROCEDURE sp_DeleteCustomerToReservationRelation(@CustomerID INT,
+                                                        @ReservationID INT)
+AS
+DELETE
+FROM tbl_CustomerReservationBridge
+WHERE fld_CustomerID = @CustomerID
+  AND fld_ReservationID = @ReservationID
+
+-- Removal of related Customer to Reservation Given Reservation
+GO
+CREATE PROCEDURE sp_RemoveAllCustomersFromReservation(@ReservationID INT)
+AS
+DELETE
+FROM tbl_CustomerReservationBridge
+WHERE fld_ReservationID = @ReservationID
+
+-- Removal of related Customer to Reservation Given Customer
+GO
+CREATE PROCEDURE sp_RemoveAllReservationFromCustomer(@CustomerID INT)
+AS
+DELETE
+FROM tbl_CustomerReservationBridge
+WHERE fld_CustomerID = @CustomerID
+
+-- Create a new Customer to Reservation relation
+GO
+CREATE PROCEDURE sp_InsertCustomerReservationRelation(@CustomerID INT,
+                                                      @ReservationID INT)
+AS
+INSERT INTO tbl_CustomerReservationBridge
+VALUES (@CustomerID, @ReservationID)
+
+
+-- Insert/Update Reservation
+GO
+CREATE PROCEDURE sp_AddReservation(@ID INT,
+                                   @newStartDate DATE,
+                                   @newEndDate DATE,
+                                   @newMileageAtDeparture INT,
+                                   @newMileageAtArrival INT,
+                                   @newAutoCamper INT,
+                                   @newSeason INT)
+AS
+BEGIN
+  IF EXISTS(SELECT * FROM tbl_Reservation WHERE fld_ReservationID = @ID)
+    BEGIN
+      UPDATE tbl_Reservation
+      SET fld_StartDate        = @newStartDate,
+          fld_EndDate          = @newEndDate,
+          fld_MilageAtDepature = @newMileageAtDeparture,
+          fld_MilageAtArrival  = @newMileageAtArrival,
+          fld_AutoCamper       = @newAutoCamper,
+          fld_Season           = @newSeason
+      WHERE fld_ReservationID = @ID
+    END
+  ELSE
+    BEGIN
+      INSERT INTO tbl_Reservation
+      VALUES (@newStartDate, @newEndDate, @newMileageAtDeparture, @newMileageAtArrival, @newAutoCamper, @newSeason)
+    END
+END
+
+-- Delete Reservation
+GO
+CREATE PROCEDURE sp_DeleteReservation(@ID INT)
+AS
+DELETE
+FROM tbl_Reservation
+WHERE fld_ReservationID = @ID
+
+-- Insert Bill status
+GO
+CREATE PROCEDURE sp_InsertBillStatus(@newStatus VARCHAR(50))
+AS
+INSERT INTO tbl_BillStatus
+VALUES (@newStatus)
+
+-- Update Bill status
+GO
+CREATE PROCEDURE sp_UpdateBillStatus(@oldStatus VARCHAR(50), @newStatus VARCHAR(50))
+AS
+UPDATE tbl_BillStatus
+SET fld_BillStatus = @newStatus
+WHERE fld_BillStatus = @oldStatus
+
+
+-- Delete Bill Status
+GO
+CREATE PROCEDURE sp_DeleteBillStatus(@ID VARCHAR(50))
+AS
+DELETE
+FROM tbl_BillStatus
+WHERE fld_BillStatus = @ID
+
+-- Insert discount
+GO
+CREATE PROCEDURE sp_InsertDiscount(@noOfRentals INT, @discountPercentage NUMERIC(8, 5))
+AS
+INSERT INTO tbl_Discount
+VALUES (@noOfRentals, @discountPercentage, SYSDATETIME())
+
+
+-- Delete discount
+GO
+CREATE PROCEDURE sp_DeleteDiscount(@ID INT)
+AS
+DELETE
+FROM tbl_Discount
+WHERE fld_DiscountID = @ID
+
+-- Insert Insurance
+GO
+CREATE PROCEDURE sp_InsertInsurance(@insuranceName VARCHAR(30), @basePrice NUMERIC(18, 2), @pricePerWeek NUMERIC(18, 2),
+                                    @description NVARCHAR(MAX))
+AS
+INSERT INTO tbl_Insurance
+VALUES (@insuranceName, @basePrice, @pricePerWeek, @description, SYSDATETIME())
+
+-- Delete Insurance
+GO
+CREATE PROCEDURE sp_DeleteInsurance(@insuranceName VARCHAR(30))
+AS
+DELETE
+FROM tbl_Insurance
+WHERE fld_InsuranceName = @insuranceName
+
+-- Insert fee
+GO
+CREATE PROCEDURE sp_InsertFee(@name VARCHAR(30), @amount NUMERIC(18, 2))
+AS
+INSERT INTO tbl_Fee
+VALUES (@name, @amount, SYSDATETIME())
+
+-- Delete Fee
+GO
+CREATE PROCEDURE sp_DeleteFee(@name VARCHAR(30))
+AS
+DELETE
+FROM tbl_Fee
+WHERE fld_Name = @name
+
+-- Insert/Update Bill
+GO
+CREATE PROCEDURE sp_AddBill(@ID INT, @dueDate DATE, @discount INT, @billStatus VARCHAR(50))
+AS
+BEGIN
+  IF EXISTS(SELECT * FROM tbl_Bill WHERE fld_BillID = @ID)
+    BEGIN
+      UPDATE tbl_Bill
+      SET fld_DueDate    = @dueDate,
+          fld_DiscountID = @discount,
+          fld_BillStatus = @billStatus
+      WHERE fld_DiscountID = @ID
+    END
+  ELSE
+    BEGIN
+      INSERT INTO tbl_Bill VALUES (@dueDate, @discount, @billStatus)
+    END
+END
+
+
+-- Delete Bill
+GO
+CREATE PROCEDURE sp_DeleteBill(@ID INT)
+AS
+  DELETE FROM tbl_Bill WHERE fld_DiscountID = @ID
+
+-- Insert Bill to Insurance relation
+GO
+CREATE PROCEDURE sp_InsertBillInsuranceBridge(@billID INT, @insuranceID INT)
+AS
+  INSERT INTO  tbl_BillInsuranceBridge VALUES (@billID,@insuranceID)
+
+-- Remove a bill to insurance relation given bill
+GO
+CREATE PROCEDURE sp_RemoveInsurancesFromBill(@billID INT)
+AS
+  DELETE FROM tbl_BillInsuranceBridge WHERE fld_BillID = @billID
+
+-- Remove a bill to insurance relation given insurance
+GO
+CREATE PROCEDURE sp_RemoveBillsFromInsurance(@insuranceID INT)
+AS
+  DELETE FROM tbl_BillInsuranceBridge WHERE fld_InsuranceID = @insuranceID
+
+-- Delete all bill to insurance relations
+GO
+CREATE PROCEDURE sp_DeleteBillInsuranceBridge(@billID INT, @insuranceID INT)
+AS
+  DELETE FROM tbl_BillInsuranceBridge WHERE fld_BillID = @billID AND fld_InsuranceID = @insuranceID
+
+-- Insert bill to Fee Relation
+GO
+CREATE PROCEDURE sp_InsertBillFeeRelation(@billID INT, @feeID INT)
+AS
+  INSERT INTO tbl_BillFeeBridge VALUES (@billID,@feeID)
+
+-- Remove a bill to Fee Relation given Bill
+GO
+CREATE PROCEDURE sp_RemoveBillsFromFee(@FeeID INT)
+AS
+  DELETE FROM tbl_BillFeeBridge WHERE fld_FeeID = @FeeID
+
+-- Remove a bill to Fee Relation given Fee
+GO
+CREATE PROCEDURE sp_RemoveFeesFromBill(@billID INT)
+AS
+  DELETE FROM tbl_BillFeeBridge WHERE fld_BillID = @billID
+
+-- Delete all bill to Fee Relation
+GO
+CREATE PROCEDURE sp_DeleteBillFeeRelation(@billID INT, @feeId INT)
+AS
+  DELETE FROM tbl_BillFeeBridge WHERE fld_BillID = @billID AND fld_FeeID = @feeId
+
+-- Insert/Update Payment
+GO
+CREATE PROCEDURE sp_AddPayment(@ID INT, @date DATE, @amount NUMERIC(18,2), @billID INT)
+AS
+  BEGIN
+    IF EXISTS(SELECT * FROM tbl_Payment WHERE fld_PaymentID = @ID)
+    BEGIN
+      UPDATE tbl_Payment
+      SET fld_Date = @date,
+          fld_Amount = @amount,
+          fld_BillID = @billID
+      WHERE fld_PaymentID = @ID
+    END
+    ELSE
+    BEGIN
+      INSERT INTO tbl_Payment VALUES (@date,@amount,@billID)
+    END
+  END
+
+-- Delete Payment
+GO
+CREATE PROCEDURE sp_DeletePayment(@ID INT)
+AS
+  DELETE FROM tbl_Payment WHERE fld_PaymentID = @ID
+
+-- Insert Custom Fee
+GO
+CREATE PROCEDURE sp_AddCustomFee(@ID INT,@amount NUMERIC(18,2), @name VARCHAR(30), @comment NVARCHAR(MAX), @billID INT)
+AS
+  BEGIN
+    IF EXISTS(SELECT * FROM  tbl_CustomFee WHERE fld_CustomFeeID = @ID)
+    BEGIN
+      UPDATE tbl_CustomFee
+      SET fld_Amount = @amount,
+          fld_Name =@name,
+          fld_Comment = @comment,
+          fld_BillID = @billID
+      WHERE fld_CustomFeeID = @ID
+    END
+    ELSE
+    BEGIN
+      INSERT INTO tbl_CustomFee VALUES (@amount,@name,@comment,@billID)
+    END
+  END
+
+-- Delete Custom Fee
+GO
+CREATE PROCEDURE sp_DeleteCustomFee(@ID INT)
+AS
+  DELETE FROM tbl_CustomFee WHERE fld_CustomFeeID = @ID
+
+-- Insert Bill Reservation Bridge
+GO
+CREATE PROCEDURE sp_InsertBillReservationRelation(@billID INT, @reservationID INT)
+AS
+  INSERT INTO  tbl_BillReservationBridge VALUES (@billID,@reservationID)
+
+-- Remove Bills from a reservation
+GO
+CREATE PROCEDURE sp_RemoveBillsFromReservation(@reservationID INT)
+AS
+  DELETE FROM tbl_BillReservationBridge WHERE fld_ReservationID = @reservationID
+
+-- Remove reservations from a Bill
+GO
+CREATE PROCEDURE sp_RemoveReservationsFromBill(@billID INT)
+AS
+  DELETE From tbl_BillReservationBridge WHERE fld_BillID = @billID
+
+-- Delete bill Reservation Bridge
+GO
+CREATE PROCEDURE sp_DeleteBillReservationRelation(@billID INT,@reservationID INT)
+AS
+  DELETE FROM tbl_BillReservationBridge WHERE fld_BillID = @billID AND fld_ReservationID = @reservationID
+
+-- Find Zip By ID
+GO
+CREATE PROCEDURE sp_GetZipByID(@ID INT)
+AS
+  SELECT * from tbl_Zip WHERE fld_Zip = @ID
+
+-- Find Customer by ID
+GO
+CREATE PROCEDURE sp_GetCustomerByID(@ID INT)
+AS
+  SELECT * From tbl_Customer WHERE fld_CustomerID = @ID
+
+-- Find Reservation by ID
+GO
+CREATE PROCEDURE sp_GetReservationByID(@ID INT)
+AS
+  SELECT * FROM tbl_Reservation WHERE fld_ReservationID =@ID
+
+-- Find AutoCamper by ID
+GO
+CREATE PROCEDURE  sp_GetAutoCamperByID(@ID INT)
+AS
+  SELECT * FROM tbl_AutoCamper WHERE fld_AutoCamperID = @ID
+
+-- Find AutoCamper type
+GO
+CREATE PROCEDURE sp_GetAutCamperTypeByID(@ID INT)
+AS
+  SELECT * FROM tbl_AutoCamperType WHERE fld_AutoCamperTypeID =@ID
+
+-- Find Season by ID
+GO
+CREATE PROCEDURE sp_GetSeasonByID(@ID INT)
+AS
+  SELECT * FROM tbl_Season WHERE fld_SeasonID = @ID
+
+-- Find Bill by ID
+GO
+CREATE PROCEDURE sp_GetBillByID(@ID INT)
+AS
+  SELECT * FROM tbl_Bill WHERE fld_BillID = @ID
+
+-- Find CustomFee by ID
+GO
+CREATE PROCEDURE sp_GetCustomFeeByID(@ID INT)
+AS
+  SELECT * FROM  tbl_CustomFee WHERE fld_CustomFeeID = @ID
+
+-- Find Insurance by ID
+GO
+CREATE PROCEDURE sp_GetInsuranceByID(@ID INT)
+AS
+  SELECT * FROM tbl_Insurance WHERE fld_InsuranceID = @ID
+
+-- Find Fee by ID
+GO
+CREATE PROCEDURE sp_GetFeeByID(@ID INT)
+AS
+  SELECT * FROM tbl_Fee WHERE fld_FeeID = @ID
+
+-- Find discount by ID
+GO
+CREATE PROCEDURE tbl_GetDiscountByID(@ID INT)
+AS
+  SELECT * FROM tbl_Discount WHERE fld_DiscountID = @ID
+
+-- Find Payment by ID
+
+-- Find BillStatus by ID
+
+-- Find AutoCamper by Status
+
+-- Find Status by Autocamper
+
+-- Find Bill by Fee
+
+-- Find Fee by Bill
+
+-- Find Bill by insurance
+
+-- Find Insurance by Bill
+
+-- Find Bill by Reservations
+
+-- Find Reservations by Bill
+
+-- Find Customer by reservation
+
+-- Find Reservation by Customer
+
+-- List All Customers
+
+-- List all AutoCampers
+
+-- List all Reservations
+
+-- List all Reservations in given Timeframe
+
+-- List all Bills
+
+-- Find closest discount
+
+-- Inserting test values via Stored procedures
+-- Test for sp_addZip
+GO
+EXEC sp_AddZip '6400', 'Sønderborg WRONG'
+EXEC sp_AddZip '6400', 'Sønderborg' -- Should Update
+EXEC sp_AddZip '6430', 'Nordborg'
+EXEC sp_AddZip '6440', 'Augustenborg'
+
+-- Test for sp_DeleteZip
+EXEC sp_AddZip '9999', 'Should be deleted'
+EXEC sp_DeleteZip '9999'
+
+-- Test for sp_AddCustomer
+EXEC sp_AddCustomer NULL, 'Sven B', '22370792', 'Sven.buechner.privat@googlemail.com', '6400', 'Helgolandsgade'
+EXEC sp_AddCustomer 1, 'Should be deleted', '22370792', 'Sven.buechner.privat@googlemail.com', '6400', 'Helgolandsgade'
+EXEC sp_AddCustomer NULL, 'Sven B', '22370792', 'Sven.buechner.privat@googlemail.com', '6400', 'Helgolandsgade'
+EXEC sp_AddCustomer NULL, 'Hans', '72470122', NULL, '6430', 'Søgade'
+EXEC sp_AddCustomer NULL, 'Peter S', '12270152', NULL, '6430', 'Frankfurter gade'
+EXEC sp_AddCustomer NULL, 'Lærke', '82427112', 'EmailCool@gmx.net', '6440', 'Hobedgade'
+
+-- Test for sp_DeleteCustomer
+EXEC sp_DeleteCustomer 1
+
+-- Test for sp_AddAutoCamperStatus
+EXEC sp_InsertAutoCamperStatus 'ReadyWRONG'
+EXEC sp_InsertAutoCamperStatus 'ReadyWRONG2'
+EXEC sp_InsertAutoCamperStatus 'Ready'
+EXEC sp_InsertAutoCamperStatus 'Rented out'
+EXEC sp_InsertAutoCamperStatus 'Need Cleaning'
+EXEC sp_InsertAutoCamperStatus 'Need Repairs'
+EXEC sp_InsertAutoCamperStatus 'Need Refueling'
+EXEC sp_InsertAutoCamperStatus 'Decommissioned'
+
+-- Test for sp_UpdateAutoCamperStatus
+EXEC sp_UpdateAutoCamperStatus 'ReadyWRONG', 'Delete1'
+EXEC sp_UpdateAutoCamperStatus 'ReadyWRONG2', 'Delete2'
+
+-- Test for sp_DeleteAutoCamperStatus
+EXEC sp_DeleteAutoCamperStatus 'Delete1'
+EXEC sp_DeleteAutoCamperStatus 'Delete2'
+
+-- Test for sp_AddAutoCamperType
+EXEC sp_InsertAutoCamperType 'Luxury', 999.99, 799.99
+EXEC sp_InsertAutoCamperType 'Standard', 399.99, 299.99
+EXEC sp_InsertAutoCamperType 'Basic', 399.99, 199.99
+EXEC sp_InsertAutoCamperType 'SHOULD BE DELETED', 1000, 1000
+
+-- Test for sp_DeleteAutoCamperType
+-- We really should never delete
+EXEC sp_DeleteAutoCamperType 4
+
+--Test for sp_AddAutoCamper
+EXEC sp_AddAutoCamper '123456', 'Basic', 3, 370, 420, 3500, 2, 4, 2415, 'Motor stuff', 6, 'Diesel', 'TEXT OF KITCHEN',
+     'TEXT OF HEATING', 'TEXT OF MEDIA', 'TEXT ABOUT GENERAL STUFF'
+
+--Test for sp_DeleteAutoCamper
+
+-- Test for Removal of singe relation
+
+-- Test for Removal of status to autoCamper relation
+
+-- Test for creation of relation between status and autoCamper
+EXEC sp_InsertStatusToAutoCamperRelation 'Ready', 1
+
+-- Test for sp_InsertSeason
+
+-- Test for sp_DeleteSeason
+
+-- Test for sp_AddReservation
+
+-- Test for sp_DeleteReservation
+
+-- Test for sp_DeleteCustomerToReservationRelation
+
+-- Test for sp_RemoveAllCustomersFromReservation
+
+-- Test for sp_RemoveAllReservationFromCustomer
+
+-- Test for sp_InsertCustomerReservationRelation
+
+-- Test for sp_InsertBillStatus
+
+-- Test for sp_UpdateBillStatus
+
+-- Test for sp_DeleteBillStatus
+
+-- Test for sp_InsertDiscount
+
+-- Test for sp_DeleteDiscount
+
+-- Test for sp_InsertInsurance
+
+-- Test for sp_DeleteInsurance
+
+-- Test for sp_InsertFee
+
+-- Test for sp_DeleteFee
+
+-- Test for sp_addBill
+
+-- Test for sp_DeleteBill
+
+-- Test for sp_InsertBillInsuranceBridge
+
+-- Test for sp_RemoveInsuranceFromBill
+
+-- Test for sp_RemoveBillFromInsurance
+
+-- Test for sp_DeleteBillInsuranceBridge
+
+-- Test for sp_InsertBillFeeRelation
+
+-- Test for sp_RemoveBillsFromFee
+
+-- Test for sp_DeleteBillFeeRelation
+
+-- Test for sp_AddPayment
+
+-- Test for sp_DeletePayment
+
+-- Test for sp_AddCustomFee
+
+-- Test for sp_DeleteCustomFee
+
+-- Test for sp_InsertBillReservationRelation
+
+-- Test for sp_RemoveBillsFromReservation
+
+-- Test for sp_RemoveReservationsFromBill
+
+-- Test for sp_DeleteBillReservationRelation
