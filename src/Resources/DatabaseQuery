@@ -936,18 +936,52 @@ AS
     )
 
 -- List All Customers
+GO
+CREATE PROCEDURE sp_GetAllCustomers
+AS
+  SELECT * FROM tbl_Customer
 
 -- List all AutoCampers
+GO
+CREATE PROCEDURE sp_GetAllAutoCampers
+AS
+  SELECT * FROM tbl_AutoCamper
 
 -- List all Reservations
+GO
+CREATE PROCEDURE sp_GetAllReservations
+AS
+  SELECT * FROM tbl_Reservation
 
 -- List all Reservations in given Timeframe
+GO
+CREATE PROCEDURE sp_GetReservationByTimeFrame(@startDate Date, @endDate DATE)
+AS
+  SELECT * FROM tbl_Reservation WHERE @endDate > fld_EndDate AND @startDate < fld_StartDate
 
 -- List all Bills
+GO
+CREATE PROCEDURE sp_GetAllBills
+AS
+  SELECT * FROM tbl_Bill
 
--- List all of Datatypes
+-- List All newest AutoCamperTypes
+
+-- List All newest Seasons
+
+-- List All newest Discount
+
+-- List All newest Fees
+
+-- List All newest Insurance
+
+
 
 -- Find closest discount
+GO
+CREATE PROCEDURE sp_GetDiscountByNoOfReservations(@noOfReservations INT)
+AS
+SELECT TOP 1 * FROM tbl_Discount WHERE fld_NoOfRentals <= @noOfReservations ORDER BY fld_NoOfRentals DESC , fld_Date DESC
 
 -- Inserting test values via Stored procedures
 -- Test for sp_addZip
