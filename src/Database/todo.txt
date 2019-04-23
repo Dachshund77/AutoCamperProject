@@ -1,0 +1,9 @@
+-- List All newest AutoCamperTypes
+
+-- List All newest Seasons
+
+-- List All newest Discount
+
+-- List All newest Fees
+
+-- List All newest Insurance

@@ -1,0 +1,7 @@
+-- Find Zip By ID
+GO
+CREATE PROCEDURE sp_GetZipByID(@ID INT)
+AS
+SELECT *
+FROM tbl_Zip
+WHERE fld_Zip = @ID
