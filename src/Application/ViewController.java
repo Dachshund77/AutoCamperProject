@@ -30,7 +30,7 @@ public enum ViewController {
      *
      * @param stage The stage where the scene will be loaded
      */
-    public void load(Stage stage) {
+    public void load(Stage stage) { //TODO figure out weird as bug about resizing
         try {
             Parent root = FXMLLoader.load(getClass().getResource(URL));
             Scene scene = new Scene(root, stage.getWidth(), stage.getHeight());
