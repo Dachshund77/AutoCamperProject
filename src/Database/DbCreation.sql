@@ -59,7 +59,7 @@ CREATE TABLE tbl_AutoCamper
   fld_WeightInKG         INT,
   fld_NoOfBeds           INT,
   fld_NoOfSeats          INT,
-  fad_MileageInKm        INT,
+  fld_MileageInKm        INT,
   fld_Engine             VARCHAR(50),
   fld_Gears              INT,
   fld_TypeOfGas          VARCHAR(30),
