@@ -13,9 +13,9 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception{
         Main.primaryStage = primaryStage;
 
-        Parent root = FXMLLoader.load(getClass().getResource("../Fxmls/Main.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("../Application/Model/Welcome.fxml"));
         primaryStage.setTitle("AutoCamper Application");
-        Scene scene = new Scene(root,300,275);
+        Scene scene = new Scene(root,850,850);
         primaryStage.setScene(scene);
         primaryStage.show();
         //TODO popper close on exist
