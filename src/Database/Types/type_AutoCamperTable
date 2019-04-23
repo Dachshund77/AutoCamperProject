@@ -1,4 +1,4 @@
-CREATE TYPE AutoCamperTable
+CREATE TYPE type_AutoCamperTable
 AS TABLE  (fld_AutoCamperTypeID     INT,
            fld_CategoryName         VARCHAR(30),
            fld_Date                 DATETIME,
