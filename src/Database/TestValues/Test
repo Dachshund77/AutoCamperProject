@@ -87,11 +87,20 @@ EXEC sp_InsertSeason null, 4,7,8,19 --Should be deleted
 GO
 EXEC sp_DeleteSeason 2
 
+--Test for sp_InsertReservationStatus
+GO
+EXEC sp_InsertReservationStatus 'This is a comment'
+EXEC sp_InsertReservationStatus 'This is a comment for deletion'
+
+--Test for sp_DeleteReservationStatus
+GO
+EXEC sp_DeleteReservationStatus 'This is a comment for deletion'
+
 -- Test for sp_AddReservation WORKS
 GO
-EXEC sp_AddReservation null, '2001-05-05', '2008-10-10', 500, 600, 1, 1
-EXEC sp_AddReservation null, '2008-11-11', '2008-12-12', 8, 9, 2, 1
-EXEC sp_AddReservation 15, '2009-01-12', '2099-12-01', 4, 5, 2, 1 --Should be deleted
+EXEC sp_AddReservation null, '2001-05-05', '2008-10-10', 500, 600, 1, 1, 'This is a comment'
+EXEC sp_AddReservation null, '2008-11-11', '2008-12-12', 8, 9, 2, 1, 'This is a comment'
+EXEC sp_AddReservation 15, '2009-01-12', '2099-12-01', 4, 5, 2, 1, 'This is a comment' --Should be deleted
 
 -- Test for sp_DeleteReservation WORKS
 GO
