@@ -6,7 +6,9 @@ CREATE PROCEDURE sp_AddReservation(@ID INT,
                                    @newMileageAtDeparture INT,
                                    @newMileageAtArrival INT,
                                    @newAutoCamper INT,
-                                   @newSeason INT)
+                                   @newSeason INT,
+                                   @newReservationStatus VARCHAR(50)
+                                   )
 AS
 BEGIN
   IF EXISTS(SELECT * FROM tbl_Reservation WHERE fld_ReservationID = @ID)
@@ -17,12 +19,13 @@ BEGIN
           fed_MileageAtDeparture = @newMileageAtDeparture,
           fad_MileageAtArrival   = @newMileageAtArrival,
           fld_AutoCamper         = @newAutoCamper,
-          fld_Season             = @newSeason
+          fld_Season             = @newSeason,
+          fld_ReservationStatus  = @newReservationStatus
       WHERE fld_ReservationID = @ID
     END
   ELSE
     BEGIN
       INSERT INTO tbl_Reservation
-      VALUES (@newStartDate, @newEndDate, @newMileageAtDeparture, @newMileageAtArrival, @newAutoCamper, @newSeason)
+      VALUES (@newStartDate, @newEndDate, @newMileageAtDeparture, @newMileageAtArrival, @newAutoCamper, @newSeason, @newReservationStatus)
     END
 END

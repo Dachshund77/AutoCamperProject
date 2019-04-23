@@ -89,6 +89,11 @@ CREATE TABLE tbl_Season
   fld_Date               DATETIME NOT NULL
 );
 
+CREATE TABLE tbl_ReservationStatus
+(
+    fld_ReservationStatus VARCHAR(50) PRIMARY KEY
+);
+
 -- Protect again last removal of customer
 CREATE TABLE tbl_Reservation
 (
@@ -100,7 +105,10 @@ CREATE TABLE tbl_Reservation
   fld_AutoCamper         INT  NOT NULL,
   FOREIGN KEY (fld_AutoCamper) REFERENCES tbl_AutoCamper (fld_AutoCamperID),
   fld_Season             INT  NOT NULL,
-  FOREIGN KEY (fld_Season) REFERENCES tbl_Season (fld_SeasonID)
+  FOREIGN KEY (fld_Season) REFERENCES tbl_Season (fld_SeasonID),
+  fld_ReservationStatus VARCHAR(50),
+  FOREIGN KEY (fld_ReservationStatus) REFERENCES tbl_ReservationStatus (fld_ReservationStatus)
+
 );
 
 CREATE TABLE tbl_CustomerReservationBridge
