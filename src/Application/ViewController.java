@@ -2,9 +2,10 @@ package Application;
 
 import Application.Controllers.Controllers;
 import UI.Main;
-import UI.Views;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 
@@ -13,16 +14,9 @@ import java.io.IOException;
  * The enum class will store the relative path to the fxml so that we don't need to type it multiple times.
  */
 public enum ViewController {
-    MAIN("../../Fxmls/Main.fxml"),
-    MUSIC_PLAYER("../../Fxmls/MusicPlayer.fxml"),
-    PLAYLIST("../../Fxmls/PlayList.fxml"),
-    SONGLIST("../../Fxmls/SongList.fxml"),
-    UPDATE_ALBUM("../../Fxmls/UpdateAlbum.fxml"),
-    UPDATE_ARTIST("../../Fxmls/UpdateArtist.fxml"),
-    UPDATE_GENRE("../../Fxmls/UpdateGenre.fxml"),
-    UPDATE_PLAYLIST("../../Fxmls/UpdatePlayList.fxml"),
-    UPDATE_SONG("../../Fxmls/UpdateSong.fxml"),
-    ADD_SONG_TO_PLAYLIST("../../Fxmls/AddSongToPlayList.fxml");
+    WELCOME_CONTROLLER("Model/Welcome.fxml"),
+    NEW_CUSTOMER("Model/NewCustomer.fxml");
+
 
     private final String URL;
 
@@ -33,12 +27,14 @@ public enum ViewController {
     /**
      * Loads a new scene.
      * The scene URL is defined in the Enum constructor.
-     * @param view The Window we want to change the root of
+     *
+     * @param stage The stage where the scene will be loaded
      */
-    public void load(Views view) {
+    public void load(Stage stage) {
         try {
             Parent root = FXMLLoader.load(getClass().getResource(URL));
-            view.setRoot(root);
+            Scene scene = new Scene(root, stage.getWidth(), stage.getHeight());
+            stage.setScene(scene);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -54,7 +50,8 @@ public enum ViewController {
      * </font>
      * In order to pass a value the new controller needs to extends the 'Controller' abstract class and override its methods.
      * </p>
-     *
+     * @param stage Stage where the scene will be loaded in
+     * @param string Value that will passed on to the controller
      * @see Application.Controllers.Controller
      * @see Main
      */
@@ -65,19 +62,14 @@ public enum ViewController {
             3) Copy paste this method in here and change the parameter
             4) Make sure you call the correct initValues in this method
             */
-    public void load(String string) {
-        try {
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource(URL));
-            Parent root = loader.load();
+    public void load(Stage stage, String string) {
+        load(stage);
 
-            Controllers newController = loader.getController();
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource(URL));
+        Controllers newController = loader.getController();
+        newController.initValues(string);
 
-            newController.initValues(string);
 
-            Main.setRoot(root);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }

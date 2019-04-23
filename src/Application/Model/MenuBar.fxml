@@ -6,22 +6,14 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<MenuBar xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="Application.Controllers.MenuBarController">
+<MenuBar fx:id="mainMenuBar" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="Application.Controllers.MenuBarController">
   <menus>
-    <Menu mnemonicParsing="false" text="File">
+    <Menu mnemonicParsing="false" text="New">
       <items>
-        <MenuItem mnemonicParsing="false" text="Close" />
+        <MenuItem mnemonicParsing="false" onAction="#navigateToNewCustomerController" text="Customer" />
       </items>
     </Menu>
-    <Menu mnemonicParsing="false" text="Edit">
-      <items>
-        <MenuItem mnemonicParsing="false" text="Delete" />
-      </items>
-    </Menu>
-    <Menu mnemonicParsing="false" text="Help">
-      <items>
-        <MenuItem mnemonicParsing="false" text="About" />
-      </items>
-    </Menu>
+    <Menu mnemonicParsing="false" text="Search" />
+    <Menu mnemonicParsing="false" text="Edit" />
   </menus>
 </MenuBar>
