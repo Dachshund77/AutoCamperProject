@@ -3,7 +3,7 @@ CREATE FUNCTION udf_JoinAutoCamperInfo(@autoCamper type_AutoCamperTable READONLY
                                        @statusAutoCamperBridge type_AutoCamperStatusAutoCamperBridgeTable READONLY,
                                        @type type_AutoCamperTypeTable READONLY)
   RETURNS TABLE
-    RETURN
+    RETURN(
     SELECT [@autoCamper].fld_AutoCamperID,
            [@autoCamper].fld_NumberPlate,
            [@autoCamper].fld_HeightInCm,
@@ -27,8 +27,8 @@ CREATE FUNCTION udf_JoinAutoCamperInfo(@autoCamper type_AutoCamperTable READONLY
            [@status].fld_AutoCamperStatus
 
     FROM @autoCamper
-           JOIN @type ON [@autoCamper].fld_AutoCamperType = [@type].fld_AutoCamperTypeID
-           JOIN @statusAutoCamperBridge
+           INNER JOIN @type ON [@autoCamper].fld_AutoCamperType = [@type].fld_AutoCamperTypeID
+           INNER JOIN @statusAutoCamperBridge
                 ON [@autoCamper].fld_AutoCamperID = [@statusAutoCamperBridge].fld_AutoCamperID
-           JOIN @status ON [@statusAutoCamperBridge].fld_AutoCamperStatus = [@status].fld_AutoCamperStatus
+           INNER JOIN @status ON [@statusAutoCamperBridge].fld_AutoCamperStatus = [@status].fld_AutoCamperStatus)
 
