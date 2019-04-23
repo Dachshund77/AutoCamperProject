@@ -1,0 +1,7 @@
+-- Find Fee by ID
+GO
+CREATE PROCEDURE sp_GetFeeByID(@ID INT)
+AS
+SELECT *
+FROM tbl_Fee
+WHERE fld_FeeID = @ID
