@@ -1,0 +1,4 @@
+CREATE PROCEDURE sp_GetAllZips
+AS
+SELECT *
+FROM tbl_Zip
