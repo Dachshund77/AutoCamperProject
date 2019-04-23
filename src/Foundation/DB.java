@@ -8,6 +8,11 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.Properties;
 
+/**
+ * The Main access point for Database interaction. This Class will mostly execute stored procedure.
+ * Note that it is the callers responsibility to call {@link DB#connect()} and {@link DB#disconnect()}.
+ * Any Calling method should be encapsulated in a try catch block that has afinallyy clause to disconnect.
+ */
 public class DB {
 
     private static java.lang.String port;
@@ -41,7 +46,13 @@ public class DB {
         }
     }
 
-    //TODO method to execute a single stored procedure
+    /**
+     * Method that will execute a stored procedure and return the result.
+     * Note that it is the callers responsibility to provide the correct amount of parameters.
+     * @param sp String with the name of the Stored Procedure
+     * @param param Variable parameter for the Procedure
+     * @return ArrayList of Object arrays.
+     */
     public static ArrayList<Object[]> executeStoredProcedure(String sp, Object... param) {
         rsmd = null;
         ArrayList<Object[]> returnArrayList = new ArrayList<>();
@@ -76,8 +87,14 @@ public class DB {
         return returnArrayList;
     }
 
-    //TODO method to execute batch stored procedure + Commit method
 
+    /**
+     * Hardcoded execution of the sp_GetSPMetaData.
+     * This method is used to determine what the parameter should be cast set to.
+     * @param sp The Stored procedure we want to get Meta Data for
+     * @return ArrayList of ProcedureMetaData
+     * @see ProcedureMetaData
+     */
     private static ArrayList<ProcedureMetaData> getSPMetaData(String sp) {
         ArrayList<ProcedureMetaData> returnArrayList = new ArrayList<>();
         try {
@@ -101,6 +118,12 @@ public class DB {
         return returnArrayList;
     }
 
+    /**
+     * Helper method that will construct the String for a callable statement.
+     * @param sp The name of the Stored procedure
+     * @param parameters Number of Parameters for the Stored procedure
+     * @return String with the Callable statement
+     */
     private static java.lang.String buildProcedureCall(String sp, int parameters) { //TODO yeah there probably a bug here
         StringBuilder builder = new StringBuilder();
         builder.append("{call ");
@@ -119,6 +142,12 @@ public class DB {
         return builder.toString();
     }
 
+    /**
+     * Helper method to set the callable statement values.
+     * @param index Index of callable statment Parameter
+     * @param dataType Type of Data at this Parameter
+     * @param dataValue The Object value provided from the application
+     */
     private static void setCallParameter(int index, String dataType, Object dataValue) {
         try {
             switch (dataType) {
@@ -141,6 +170,10 @@ public class DB {
         }
     }
 
+    /**
+     * Method to establish a connection to the Database.
+     * Note that this must be called before running any other methods from this class.
+     */
     public static void connect() {
         try {
             conn = DriverManager.getConnection("jdbc:sqlserver://localhost:" + port + ";databaseName=" + databaseName, userName, password);
@@ -149,6 +182,9 @@ public class DB {
         }
     }
 
+    /**
+     * Method to close connection to the Database.
+     */
     public static void disconnect() {
         try {
             if (cstmt != null) {
