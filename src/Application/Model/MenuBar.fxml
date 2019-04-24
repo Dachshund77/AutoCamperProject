@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<MenuBar fx:id="mainMenuBar" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="Application.Controllers.MenuBarController">
+  <menus>
+    <Menu mnemonicParsing="false" text="New">
+      <items>
+        <MenuItem mnemonicParsing="false" onAction="#navigateToNewCustomerController" text="Customer" />
+      </items>
+    </Menu>
+    <Menu mnemonicParsing="false" text="Search" />
+    <Menu mnemonicParsing="false" text="Edit" />
+  </menus>
+</MenuBar>

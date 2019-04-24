@@ -28,7 +28,7 @@ BEGIN
           fld_WeightInKG         = @newWeightInKG,
           fld_NoOfBeds           = @newNoOfBeds,
           fld_NoOfSeats          = @newNoOfSeats,
-          fad_MileageInKm        = @newMileageInKm,
+          fld_MileageInKm        = @newMileageInKm,
           fld_Engine             = @newEngine,
           fld_Gears              = @newGears,
           fld_TypeOfGas          = @newTypeOfGas,

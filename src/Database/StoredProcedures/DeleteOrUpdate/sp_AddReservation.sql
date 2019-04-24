@@ -16,8 +16,8 @@ BEGIN
       UPDATE tbl_Reservation
       SET fld_StartDate          = @newStartDate,
           fld_EndDate            = @newEndDate,
-          fed_MileageAtDeparture = @newMileageAtDeparture,
-          fad_MileageAtArrival   = @newMileageAtArrival,
+          fld_MileageAtDeparture = @newMileageAtDeparture,
+          fld_MileageAtArrival   = @newMileageAtArrival,
           fld_AutoCamper         = @newAutoCamper,
           fld_Season             = @newSeason,
           fld_ReservationStatus  = @newReservationStatus
