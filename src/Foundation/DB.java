@@ -79,8 +79,8 @@ public class DB {
                 returnArrayList.add(tempArray);
             }
             // cleaning up
-            cstmt.close();
-            rs.close();
+            //cstmt.close();
+            //rs.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -203,5 +203,24 @@ public class DB {
 
     public static ResultSetMetaData getRsmd() {
         return rsmd;
+    }
+
+    /**
+     * Helper method to identify raw object output from the DB.
+     * @return String Array with names of columns.
+     */
+    public static String [] getRsColumnNames(){
+        String[] returnArray = null;
+        try {
+            int columnCount = rsmd.getColumnCount();
+            returnArray = new String[columnCount];
+            for (int i = 1; i <= columnCount; i++) {
+                String name = rsmd.getColumnName(i);
+                returnArray[i-1] = name;
+            }
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
+        return returnArray;
     }
 }

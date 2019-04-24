@@ -1,8 +1,8 @@
 package Domain;
 
 public class Zip {
-    public String zip;
-    public String city;
+    private String zip;
+    private String city;
 
     public Zip(String zip, String city) {
         this.zip = zip;

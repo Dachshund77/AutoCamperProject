@@ -28,13 +28,14 @@ public enum ViewController {
      * Loads a new scene.
      * The scene URL is defined in the Enum constructor.
      *
-     * @param stage The stage where the scene will be loaded
+     * @param scene The scene that will be replaced on reLoad
      */
-    public void load(Stage stage) { //TODO figure out weird as bug about resizing
+    public void reLoad(Scene scene) { //TODO i seriously wonder what happen with subcontrollers and sub scenes.....
         try {
             Parent root = FXMLLoader.load(getClass().getResource(URL));
-            Scene scene = new Scene(root, stage.getWidth(), stage.getHeight());
-            stage.setScene(scene);
+            Scene newScene = new Scene(root, scene.getWidth(), scene.getHeight());
+            Stage stage = (Stage) scene.getWindow();
+            stage.setScene(newScene);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -50,7 +51,8 @@ public enum ViewController {
      * </font>
      * In order to pass a value the new controller needs to extends the 'Controller' abstract class and override its methods.
      * </p>
-     * @param stage Stage where the scene will be loaded in
+     *
+     * @param scene  The scene that will be replaced on reLoad
      * @param string Value that will passed on to the controller
      * @see Application.Controllers.Controller
      * @see Main
@@ -62,8 +64,8 @@ public enum ViewController {
             3) Copy paste this method in here and change the parameter
             4) Make sure you call the correct initValues in this method
             */
-    public void load(Stage stage, String string) {
-        load(stage);
+    public void reLoad(Scene scene, String string) {
+        reLoad(scene);
 
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(getClass().getResource(URL));

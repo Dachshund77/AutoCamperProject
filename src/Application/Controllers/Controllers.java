@@ -8,7 +8,7 @@ import Application.ViewController;
 public interface Controllers {
 
     /**
-     * Method that will load the Controller with needed information.
+     * Method that will reLoad the Controller with needed information.
      * This method can be used to pass information from one Controller to another.
      * <br><br>
      * <p>
